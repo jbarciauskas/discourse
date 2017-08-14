@@ -1,4 +1,5 @@
 require 'sqlite3'
+require 'timeout'
 require File.expand_path(File.dirname(__FILE__) + "/base.rb")
 
 # Paste these lines into your shell before running this:
@@ -423,7 +424,16 @@ class ImportScripts::Mbox < ImportScripts::Base
         mail.body
 
         from_email, _ = extract_name(mail)
-        selected = receiver.select_body
+
+        selected = nil
+        begin
+          selected = Timeout.timeout(5) do
+            receiver.select_body
+          end
+        rescue Timeout::Error
+          next
+        end
+
         next unless selected
         selected = selected.join('') if selected.kind_of?(Array)
 
@@ -511,7 +521,15 @@ class ImportScripts::Mbox < ImportScripts::Base
 
         from_email, _ = extract_name(mail)
 
-        selected = receiver.select_body
+        selected = nil
+        begin
+          selected = Timeout.timeout(5) do
+            receiver.select_body
+          end
+        rescue Timeout::Error
+          next
+        end
+
         selected = selected.join('') if selected.kind_of?(Array)
         next unless selected
 
